@@ -4,7 +4,16 @@ const fs = require('fs');
 
 const server = http.createServer((req, res) => {
     console.log(`\n📥 ${req.method} Request received---------------------------------------------------------------`);
-    console.log(`➡️  IP:  ${req.socket.remoteAddress}`)
+
+    const ipChain = [
+        req.headers['x-forwarded-for'],
+        req.headers['cf-connecting-ip'],
+        req.headers['true-client-ip'],
+        req.headers['x-real-ip'],
+        req.socket.remoteAddress
+    ].filter(Boolean);
+    
+    console.log(`➡️  IP Chain: ${ipChain.join(' → ')}`);
     console.log(`➡️  URL: ${req.url}`);
     console.log(`🧠 Headers:`, req.headers);
     console.log(`🧠 Headers:`, req.body);
