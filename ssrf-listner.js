@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 const server = http.createServer((req, res) => {
-    console.log(`\n📥 ${req.method} Request received`);
+    console.log(`\n📥 ${req.method} Request received---------------------------------------------------------------`);
     console.log(`➡️  IP:  ${req.socket.remoteAddress}`)
     console.log(`➡️  URL: ${req.url}`);
     console.log(`🧠 Headers:`, req.headers);
