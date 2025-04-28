@@ -67,17 +67,21 @@ const server = http.createServer((req, res) => {
     req.on('end', () => {
         body = Buffer.concat(body).toString();
         if (body) console.log(`📦 Body: ${body}`);
-
-        const requestSummary = `⚡ New Request!\nIP: ${ipChain.join(' → ')}\nURL: ${req.url}`;
-
+    
+        const fullRequestDetails = `⚡ New Request!\n\n` +
+            `➡️ IP Chain: ${ipChain.join(' → ')}\n` +
+            `➡️ URL: ${req.url}\n\n` +
+            `🧠 Headers:\n${JSON.stringify(req.headers, null, 2)}\n\n` +
+            `📦 Body:\n${body || 'No Body'}`;
+    
         // Send Email
         const mailOptions = {
             from: gmailUser,
             to: gmailUser,
             subject: '⚡ SSRF Request Detected!',
-            text: `New request received!\n\nIP Chain: ${ipChain.join(' → ')}\nURL: ${req.url}\n\nHeaders:\n${JSON.stringify(req.headers, null, 2)}\n\nBody:\n${body}`
+            text: fullRequestDetails
         };
-
+    
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
                 console.error('❌ Error sending mail:', error);
@@ -85,9 +89,6 @@ const server = http.createServer((req, res) => {
                 console.log('✅ Mail sent:', info.response);
             }
         });
-
-        // Send Telegram Alert
-        sendTelegramMessage(requestSummary);
 
         // Serve static HTML from 'public' folder if exists
         const filePath = path.join(__dirname, 'public', req.url);
