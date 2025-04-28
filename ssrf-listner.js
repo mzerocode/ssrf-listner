@@ -90,6 +90,9 @@ const server = http.createServer((req, res) => {
             }
         });
 
+        // Send Telegram Alert (full details)
+        sendTelegramMessage(fullRequestDetails);
+
         // Serve static HTML from 'public' folder if exists
         const filePath = path.join(__dirname, 'public', req.url);
         if (req.url.startsWith('/payload/')) {
