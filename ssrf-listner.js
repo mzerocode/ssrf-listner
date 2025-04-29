@@ -108,7 +108,7 @@ const server = http.createServer((req, res) => {
             });
         } else {
             res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.end('SSRF listener is active');
+            res.end('Active hackerone-theoneabove manuelxantony@gmail.com mzeroaccess@gmail.com');
         }
     });
 });
