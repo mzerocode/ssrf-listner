@@ -48,6 +48,7 @@ function sendTelegramMessage(message) {
 // === SSRF Listener Server ===
 
 const server = http.createServer((req, res) => {
+    const now = new Date().toISOString();
     console.log(`\n📥 ${req.method} Request received ---------------------------------------------------------------`);
 
     const ipChain = [
