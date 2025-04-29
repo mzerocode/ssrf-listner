@@ -93,7 +93,10 @@ const server = http.createServer((req, res) => {
         // Send Telegram Alert (full details)
         sendTelegramMessage(fullRequestDetails);
 
-        // Serve static HTML from 'public' folder if exists
+        // Set CORS header to avoid browser warnings
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        
+        // Serve payloads if exists
         const filePath = path.join(__dirname, 'public', req.url);
         if (req.url.startsWith('/payload/')) {
             fs.readFile(filePath, (err, content) => {
