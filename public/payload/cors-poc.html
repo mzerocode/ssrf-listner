@@ -9,7 +9,7 @@
   <script>
     fetch("https://hey.bild.de/api/suggestions", {
       method: "GET",
-      credentials: "include"
+      credentials: "omit"
     })
     .then(res => res.text())
     .then(body => {
