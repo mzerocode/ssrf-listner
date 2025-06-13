@@ -134,7 +134,7 @@ const server = http.createServer((req, res) => {
         sendTelegramMessage(fullRequestDetails);
 
         // Serve payloads if exists
-        res.setHeader('Access-Control-Allow-Origin', '*');
+        // res.setHeader('Access-Control-Allow-Origin', '*');
 
         const safePath = path.normalize(path.join(__dirname, 'public', req.url));
         if (safePath.startsWith(path.join(__dirname, 'public')) && req.url.startsWith('/payload/')) {

