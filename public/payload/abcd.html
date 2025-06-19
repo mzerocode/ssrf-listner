@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🚨 Internal Bug Report #441</title>
+  <meta name="description" content="Internal application error log, stack trace, and environment debug details. For engineering use only.">
+  <style>
+    body { font-family: monospace; background-color: #f7f7f7; color: #222; padding: 20px; }
+    .log-block { background: #fff; padding: 15px; border: 1px solid #ccc; margin-top: 20px; }
+    code { background: #eee; padding: 2px 5px; }
+  </style>
+</head>
+<body>
+  <h1>🛠️ Internal Debug Log – Env: <code>prod-eu1</code></h1>
+  <p><strong>User:</strong> admin@example.com</p>
+  <p><strong>Report ID:</strong> #441</p>
+  <p><strong>Timestamp:</strong> 2024-06-18T13:55:22Z</p>
+
+  <div class="log-block">
+    <h2>Traceback</h2>
+    <pre>
+Traceback (most recent call last):
+  File "/app/controllers/user.py", line 58, in get_profile
+    user = {{ ''.__class__.__mro__[1].__subclasses__() }}
+TemplateRenderError: could not resolve class
+    </pre>
+  </div>
+
+  <div class="log-block">
+    <h2>Environment Variables</h2>
+    <p><strong>API_KEY:</strong> sk_live_abc123XYZ</p>
+    <p><strong>JWT_SECRET:</strong> s3cr3t-s1gn1ng-key</p>
+    <p><strong>Admin Panel:</strong> <a href="http://admin.internal.local">http://admin.internal.local</a></p>
+  </div>
+
+  <div class="log-block">
+    <h2>Raw Output</h2>
+    <p>Error Value: <code>{{7*7}}</code></p>
+    <p>Status: <code>500 – Template Parse Failure</code></p>
+  </div>
+
+  <footer>
+    <p style="font-size: 12px; color: gray;">Do not share externally. For internal use by SRE/DevOps team only.</p>
+  </footer>
+</body>
+</html>
