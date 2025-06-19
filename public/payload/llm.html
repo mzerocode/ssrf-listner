@@ -1,0 +1,4 @@
+<body>
+  <h2>{{7*7}}</h2>
+  <p>SSTI test: {{ ''.__class__.__mro__[1].__subclasses__() }}</p>
+</body>
