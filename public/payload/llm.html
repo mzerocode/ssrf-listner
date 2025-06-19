@@ -1,4 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SSTI PoC: {{7*7}}</title>
+</head>
 <body>
-  <h2>{{7*7}}</h2>
-  <p>SSTI test: {{ ''.__class__.__mro__[1].__subclasses__() }}</p>
+  <h2>Internal Debug Output</h2>
+  <p>Error Code: {{7*7}}</p>
+  <p>Debug: {{ ''.__class__.__mro__[1].__subclasses__() }}</p>
+  <p>Admin Portal: http://admin.internal.local</p>
 </body>
+</html>
